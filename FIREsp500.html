@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S&P 500 Investment Calculator | 标普500投资计算器</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a2332;
+            --accent: #d4af37;
+            --accent-light: #f4e5b8;
+            --text: #2c3e50;
+            --text-light: #6c7a89;
+            --bg: #fafbfc;
+            --card: #ffffff;
+            --border: #e1e8ed;
+            --success: #27ae60;
+            --error: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: linear-gradient(135deg, #fafbfc 0%, #f0f4f8 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, #2c3e50 100%);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+            opacity: 0.5;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3em;
+            color: white;
+            margin-bottom: 10px;
+            position: relative;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            color: var(--accent-light);
+            font-size: 1.2em;
+            font-weight: 300;
+            position: relative;
+        }
+
+        .lang-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .lang-switch:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--primary);
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.95em;
+        }
+
+        .bilingual-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .label-en, .label-zh {
+            transition: opacity 0.3s;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: 'IBM Plex Sans', sans-serif;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
+        .period-zone {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .period-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .period-title {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 1.1em;
+        }
+
+        .remove-period {
+            background: var(--error);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s;
+        }
+
+        .remove-period:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+
+        .period-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, #b8941f 100%);
+            color: var(--primary);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin-top: 20px;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary) 0%, #2c3e50 100%);
+            padding: 20px;
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--accent-light);
+        }
+
+        .assumptions {
+            background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%);
+            border-left: 5px solid var(--accent);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+        }
+
+        .assumptions h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5em;
+        }
+
+        .assumptions ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .assumptions li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .assumptions li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .section-divider {
+            margin: 15px 0;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 1024px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .period-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            header {
+                padding: 30px 15px;
+                margin-bottom: 30px;
+            }
+
+            h1 {
+                font-size: 1.6em;
+            }
+
+            .subtitle {
+                font-size: 1em;
+            }
+
+            .lang-switch {
+                top: 15px;
+                right: 15px;
+                padding: 8px 16px;
+                font-size: 0.9em;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .card h2 {
+                font-size: 1.4em;
+            }
+
+            .result-stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-value {
+                font-size: 1.4em;
+            }
+
+            .chart-container {
+                height: 350px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: var(--text-light);
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button class="lang-switch" onclick="toggleLanguage()">
+                <span class="lang-en">中文</span>
+                <span class="lang-zh" style="display:none;">English</span>
+            </button>
+            <h1>
+                <span class="lang-en">S&P 500 Investment Calculator</span>
+                <span class="lang-zh" style="display:none;">标普500投资计算器</span>
+            </h1>
+            <div class="subtitle">
+                <span class="lang-en">Project Your Wealth Growth with Historical Data</span>
+                <span class="lang-zh" style="display:none;">基于历史数据预测财富增长</span>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <!-- Input Panel -->
+            <div class="card">
+                <h2>
+                    <span class="lang-en">Parameters</span>
+                    <span class="lang-zh" style="display:none;">投资参数</span>
+                </h2>
+
+                <div class="input-group">
+                    <label>
+                        <div class="bilingual-label">
+                            <span class="lang-en">Start Investment Year</span>
+                            <span class="lang-zh" style="display:none;">开始投资年份</span>
+                        </div>
+                    </label>
+                    <select id="startYear">
+                        <!-- Will be populated by JS -->
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>
+                        <div class="bilingual-label">
+                            <span class="lang-en">Initial Investment ($)</span>
+                            <span class="lang-zh" style="display:none;">初始投资金额 ($)</span>
+                        </div>
+                    </label>
+                    <input type="number" id="initialInvest" value="1000000" min="0" step="1000">
+                </div>
+
+                <div class="input-group">
+                    <label>
+                        <div class="bilingual-label">
+                            <span class="lang-en">Retirement Target ($)</span>
+                            <span class="lang-zh" style="display:none;">退休目标资产 ($)</span>
+                        </div>
+                    </label>
+                    <input type="number" id="equityTarget" value="2000000" min="0" step="1000">
+                </div>
+
+                <div id="periodsContainer">
+                    <!-- DCA periods will be added here -->
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-secondary" onclick="addPeriod()">
+                        <span class="lang-en">+ Add DCA Period</span>
+                        <span class="lang-zh" style="display:none;">+ 添加定投期</span>
+                    </button>
+                    <button class="btn btn-primary" onclick="calculate()">
+                        <span class="lang-en">Calculate</span>
+                        <span class="lang-zh" style="display:none;">计算</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="card">
+                <h2>
+                    <span class="lang-en">Results</span>
+                    <span class="lang-zh" style="display:none;">计算结果</span>
+                </h2>
+                
+                <div class="loading" id="loading">
+                    <span class="lang-en">Calculating...</span>
+                    <span class="lang-zh" style="display:none;">计算中...</span>
+                </div>
+
+                <div id="resultsContainer" style="display:none;">
+                    <div class="result-stats" id="statsContainer"></div>
+                    <div class="chart-container">
+                        <canvas id="wealthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assumptions Section -->
+        <div class="card assumptions">
+            <h3>
+                <span class="lang-en">📊 Assumptions & Methodology</span>
+                <span class="lang-zh" style="display:none;">📊 假设条件与计算方法</span>
+            </h3>
+            <ul>
+                <li>
+                    <span class="lang-en"><strong>Historical Returns (1966-2025):</strong> Uses actual S&P 500 annual returns from historical data.</span>
+                    <span class="lang-zh" style="display:none;"><strong>历史回报率(1966-2025):</strong> 使用标普500实际年度回报数据。</span>
+                </li>
+                <li>
+                    <span class="lang-en"><strong>Future Returns (2026+):</strong> Assumes 9% annual return for years beyond 2025.</span>
+                    <span class="lang-zh" style="display:none;"><strong>未来回报率(2026年后):</strong> 假设年均回报率为9%。</span>
+                </li>
+                <li>
+                    <span class="lang-en"><strong>Investment Timing:</strong> Initial investment receives returns at end of Year 1. Annual investments are added at the end of each year.</span>
+                    <span class="lang-zh" style="display:none;"><strong>投资时点:</strong> 初始投资在第一年末获得回报。年度投资在每年末追加。</span>
+                </li>
+                <li>
+                    <span class="lang-en"><strong>No Inflation Adjustment:</strong> The 9% assumed return does NOT account for inflation. Real returns would be lower.</span>
+                    <span class="lang-zh" style="display:none;"><strong>未考虑通胀:</strong> 假设的9%回报率未扣除通货膨胀。实际购买力增长会更低。</span>
+                </li>
+                <li>
+                    <span class="lang-en"><strong>No Fees or Taxes:</strong> This model does not account for investment fees, taxes, or transaction costs.</span>
+                    <span class="lang-zh" style="display:none;"><strong>未计入费用和税收:</strong> 本模型未考虑投资费用、税收或交易成本。</span>
+                </li>
+                <li>
+                    <span class="lang-en"><strong>Projection Limit:</strong> Calculations extend to year 2100 if target is not reached.</span>
+                    <span class="lang-zh" style="display:none;"><strong>预测上限:</strong> 如未达到目标，计算延续至2100年。</span>
+                </li>
+            </ul>
+            
+            <div class="section-divider"></div>
+            
+            <p style="margin-top: 15px; font-style: italic; color: var(--text-light);">
+                <span class="lang-en">⚠️ <strong>Disclaimer:</strong> Past performance does not guarantee future results. This calculator is for educational purposes only and should not be considered financial advice.</span>
+                <span class="lang-zh" style="display:none;">⚠️ <strong>免责声明:</strong> 历史业绩不代表未来表现。本计算器仅供教育参考，不构成投资建议。</span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Historical S&P 500 returns data
+        const historicalReturns = {
+            1966: -0.1006, 1967: 0.2398, 1968: 0.1106, 1969: -0.0850, 1970: 0.0401,
+            1971: 0.1431, 1972: 0.1898, 1973: -0.1466, 1974: -0.2647, 1975: 0.3720,
+            1976: 0.2384, 1977: -0.0718, 1978: 0.0656, 1979: 0.1844, 1980: 0.3242,
+            1981: -0.0491, 1982: 0.2155, 1983: 0.2256, 1984: 0.0627, 1985: 0.3173,
+            1986: 0.1867, 1987: 0.0525, 1988: 0.1661, 1989: 0.3169, 1990: -0.0310,
+            1991: 0.3047, 1992: 0.0762, 1993: 0.1008, 1994: 0.0132, 1995: 0.3758,
+            1996: 0.2296, 1997: 0.3336, 1998: 0.2858, 1999: 0.2104, 2000: -0.0910,
+            2001: -0.1189, 2002: -0.2210, 2003: 0.2868, 2004: 0.1088, 2005: 0.0491,
+            2006: 0.1579, 2007: 0.0549, 2008: -0.3700, 2009: 0.2646, 2010: 0.1506,
+            2011: 0.0211, 2012: 0.1600, 2013: 0.3239, 2014: 0.1369, 2015: 0.0138,
+            2016: 0.1196, 2017: 0.2183, 2018: -0.0438, 2019: 0.3149, 2020: 0.1840,
+            2021: 0.2871, 2022: -0.1811, 2023: 0.2629, 2024: 0.2502, 2025: 0.1788
+        };
+
+        const assumedReturn = 0.09; // 9% for years >= 2026
+        let currentLang = 'en';
+        let chartInstance = null;
+
+        // Initialize
+        function init() {
+            populateYearSelect();
+            addPeriod(); // Add first default period
+        }
+
+        function populateYearSelect() {
+            const select = document.getElementById('startYear');
+            const currentYear = 2026;
+            
+            for (let year = 1966; year <= currentYear + 10; year++) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                if (year === currentYear) option.selected = true;
+                select.appendChild(option);
+            }
+        }
+
+        function addPeriod() {
+            const container = document.getElementById('periodsContainer');
+            const existingPeriods = container.querySelectorAll('.period-zone');
+            const newPeriodNumber = existingPeriods.length + 1;
+            
+            const periodDiv = document.createElement('div');
+            periodDiv.className = 'period-zone';
+            periodDiv.dataset.periodNumber = newPeriodNumber;
+            
+            const startYear = parseInt(document.getElementById('startYear').value);
+            const defaultFromYear = newPeriodNumber === 1 ? startYear : startYear + (newPeriodNumber - 1) * 15;
+            const defaultToYear = newPeriodNumber === 1 ? 2040 : defaultFromYear + 14;
+            
+            periodDiv.innerHTML = `
+                <div class="period-header">
+                    <span class="period-title">
+                        <span class="lang-en">DCA Period ${newPeriodNumber}</span>
+                        <span class="lang-zh" style="display:${currentLang === 'zh' ? 'inline' : 'none'};">定投期 ${newPeriodNumber}</span>
+                    </span>
+                    ${newPeriodNumber > 1 ? `<button class="remove-period" onclick="removePeriod(this)">
+                        <span class="lang-en">Remove</span>
+                        <span class="lang-zh" style="display:${currentLang === 'zh' ? 'inline' : 'none'};">删除</span>
+                    </button>` : ''}
+                </div>
+                <div class="period-inputs">
+                    <div class="input-group">
+                        <label>
+                            <span class="lang-en">From Year</span>
+                            <span class="lang-zh" style="display:${currentLang === 'zh' ? 'inline' : 'none'};">起始年份</span>
+                        </label>
+                        <input type="number" class="period-from" value="${defaultFromYear}" min="1966" max="2100">
+                    </div>
+                    <div class="input-group">
+                        <label>
+                            <span class="lang-en">To Year</span>
+                            <span class="lang-zh" style="display:${currentLang === 'zh' ? 'inline' : 'none'};">结束年份</span>
+                        </label>
+                        <input type="number" class="period-to" value="${defaultToYear}" min="1966" max="2100">
+                    </div>
+                    <div class="input-group">
+                        <label>
+                            <span class="lang-en">Investment ($)</span>
+                            <span class="lang-zh" style="display:${currentLang === 'zh' ? 'inline' : 'none'};">年度定投 ($)</span>
+                        </label>
+                        <input type="number" class="period-amount" value="70000" min="0" step="1000">
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(periodDiv);
+            renumberPeriods();
+        }
+
+        function removePeriod(button) {
+            const period = button.closest('.period-zone');
+            if (period) {
+                period.remove();
+                renumberPeriods();
+            }
+        }
+
+        function renumberPeriods() {
+            const container = document.getElementById('periodsContainer');
+            const periods = container.querySelectorAll('.period-zone');
+            
+            periods.forEach((period, index) => {
+                const periodNumber = index + 1;
+                period.dataset.periodNumber = periodNumber;
+                
+                const titleEn = period.querySelector('.period-title .lang-en');
+                const titleZh = period.querySelector('.period-title .lang-zh');
+                
+                if (titleEn) titleEn.textContent = `DCA Period ${periodNumber}`;
+                if (titleZh) titleZh.textContent = `定投期 ${periodNumber}`;
+            });
+        }
+
+        function getPeriods() {
+            const periods = [];
+            const periodZones = document.querySelectorAll('.period-zone');
+            
+            periodZones.forEach(zone => {
+                const fromYear = parseInt(zone.querySelector('.period-from').value);
+                const toYear = parseInt(zone.querySelector('.period-to').value);
+                const amount = parseFloat(zone.querySelector('.period-amount').value);
+                
+                periods.push({ fromYear, toYear, amount });
+            });
+            
+            return periods.sort((a, b) => a.fromYear - b.fromYear);
+        }
+
+        function getAnnualInvestment(year, periods) {
+            for (const period of periods) {
+                if (year >= period.fromYear && year <= period.toYear) {
+                    return period.amount;
+                }
+            }
+            return 0;
+        }
+
+        function calculate() {
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('resultsContainer').style.display = 'none';
+            
+            setTimeout(() => {
+                const startYear = parseInt(document.getElementById('startYear').value);
+                const initialInvest = parseFloat(document.getElementById('initialInvest').value);
+                const equityTarget = parseFloat(document.getElementById('equityTarget').value);
+                const periods = getPeriods();
+
+                // Calculate year by year
+                const data = [];
+                let wealth = initialInvest;
+                let totalContributions = initialInvest;
+                let targetYear = null;
+                
+                const maxYear = 2100;
+                let currentYear = startYear;
+
+                while (currentYear <= maxYear) {
+                    // Get return for this year
+                    let returnRate;
+                    if (currentYear >= 2026) {
+                        returnRate = assumedReturn;
+                    } else if (historicalReturns[currentYear]) {
+                        returnRate = historicalReturns[currentYear];
+                    } else {
+                        returnRate = assumedReturn;
+                    }
+
+                    // Apply return to current wealth
+                    wealth = wealth * (1 + returnRate);
+
+                    // Add annual investment at end of year
+                    const annualInvest = getAnnualInvestment(currentYear, periods);
+                    wealth += annualInvest;
+                    totalContributions += annualInvest;
+
+                    // Record data
+                    data.push({
+                        year: currentYear,
+                        wealth: wealth,
+                        contributions: totalContributions
+                    });
+
+                    // Check if target reached
+                    if (targetYear === null && wealth >= equityTarget) {
+                        targetYear = currentYear;
+                    }
+
+                    currentYear++;
+
+                    // Stop if target reached and we've shown a few more years
+                    if (targetYear && currentYear > targetYear + 5) {
+                        break;
+                    }
+                }
+
+                // Display results
+                displayResults(data, targetYear, equityTarget, startYear);
+                
+                // Hide loading
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('resultsContainer').style.display = 'block';
+            }, 100);
+        }
+
+        function displayResults(data, targetYear, equityTarget, startYear) {
+            // Stats
+            const statsContainer = document.getElementById('statsContainer');
+            
+            if (targetYear) {
+                // Find data at target year
+                const targetData = data.find(d => d.year === targetYear);
+                const totalInvested = targetData.contributions;
+                const totalGains = targetData.wealth - targetData.contributions;
+                
+                statsContainer.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <span class="lang-en">Retirement Year</span>
+                            <span class="lang-zh" style="display:${currentLang === 'zh' ? 'block' : 'none'};">退休年份</span>
+                        </div>
+                        <div class="stat-value">${targetYear}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <span class="lang-en">Years to Retire</span>
+                            <span class="lang-zh" style="display:${currentLang === 'zh' ? 'block' : 'none'};">距离退休年数</span>
+                        </div>
+                        <div class="stat-value">${targetYear - startYear}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <span class="lang-en">Total Invested</span>
+                            <span class="lang-zh" style="display:${currentLang === 'zh' ? 'block' : 'none'};">累计投入</span>
+                        </div>
+                        <div class="stat-value">$${formatNumber(totalInvested)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <span class="lang-en">Total Gains</span>
+                            <span class="lang-zh" style="display:${currentLang === 'zh' ? 'block' : 'none'};">投资收益</span>
+                        </div>
+                        <div class="stat-value">$${formatNumber(totalGains)}</div>
+                    </div>
+                `;
+            } else {
+                // Target not reached
+                const finalWealth = data[data.length - 1].wealth;
+                const finalYear = data[data.length - 1].year;
+                
+                statsContainer.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <span class="lang-en">Status</span>
+                            <span class="lang-zh" style="display:${currentLang === 'zh' ? 'block' : 'none'};">状态</span>
+                        </div>
+                        <div class="stat-value" style="font-size: 1.2em;">
+                            <span class="lang-en">Not Reached</span>
+                            <span class="lang-zh" style="display:${currentLang === 'zh' ? 'inline' : 'none'};">未达标</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <span class="lang-en">Projected to ${finalYear}</span>
+                            <span class="lang-zh" style="display:${currentLang === 'zh' ? 'block' : 'none'};">预测至${finalYear}年</span>
+                        </div>
+                        <div class="stat-value">$${formatNumber(finalWealth)}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">
+                            <span class="lang-en">Still Needed</span>
+                            <span class="lang-zh" style="display:${currentLang === 'zh' ? 'block' : 'none'};">仍需资金</span>
+                        </div>
+                        <div class="stat-value">$${formatNumber(equityTarget - finalWealth)}</div>
+                    </div>
+                `;
+            }
+
+            // Chart
+            const ctx = document.getElementById('wealthChart').getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const years = data.map(d => d.year);
+            const wealthData = data.map(d => d.wealth);
+            const contributionsData = data.map(d => d.contributions);
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [
+                        {
+                            label: currentLang === 'en' ? 'Net Wealth' : '净资产',
+                            data: wealthData,
+                            borderColor: '#d4af37',
+                            backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: currentLang === 'en' ? 'Total Invested' : '累计投入',
+                            data: contributionsData,
+                            borderColor: '#6c7a89',
+                            backgroundColor: 'rgba(108, 122, 137, 0.05)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: currentLang === 'en' ? 'Retirement Target' : '退休目标',
+                            data: years.map(() => equityTarget),
+                            borderColor: '#27ae60',
+                            borderWidth: 2,
+                            borderDash: [10, 5],
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 13,
+                                    family: 'IBM Plex Sans'
+                                },
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 35, 50, 0.95)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                family: 'IBM Plex Sans'
+                            },
+                            bodyFont: {
+                                size: 13,
+                                family: 'IBM Plex Sans'
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += '$' + formatNumber(context.parsed.y);
+                                    return label;
+                                }
+                            }
+                        },
+                        annotation: targetYear ? {
+                            annotations: {
+                                targetLine: {
+                                    type: 'line',
+                                    xMin: years.indexOf(targetYear),
+                                    xMax: years.indexOf(targetYear),
+                                    borderColor: '#27ae60',
+                                    borderWidth: 2,
+                                    borderDash: [5, 5],
+                                    label: {
+                                        display: true,
+                                        content: currentLang === 'en' ? `Retire: ${targetYear}` : `退休: ${targetYear}年`,
+                                        position: 'start'
+                                    }
+                                }
+                            }
+                        } : {}
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11,
+                                    family: 'IBM Plex Sans'
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + formatNumber(value);
+                                },
+                                font: {
+                                    size: 11,
+                                    family: 'IBM Plex Sans'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function formatNumber(num) {
+            return Math.round(num).toLocaleString('en-US');
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'zh' : 'en';
+            
+            // Toggle all language elements
+            document.querySelectorAll('.lang-en').forEach(el => {
+                el.style.display = currentLang === 'en' ? '' : 'none';
+            });
+            document.querySelectorAll('.lang-zh').forEach(el => {
+                el.style.display = currentLang === 'zh' ? '' : 'none';
+            });
+
+            // Update chart if it exists
+            if (chartInstance) {
+                chartInstance.data.datasets[0].label = currentLang === 'en' ? 'Net Wealth' : '净资产';
+                chartInstance.data.datasets[1].label = currentLang === 'en' ? 'Total Invested' : '累计投入';
+                chartInstance.data.datasets[2].label = currentLang === 'en' ? 'Retirement Target' : '退休目标';
+                chartInstance.update();
+            }
+        }
+
+        // Initialize on load
+        window.onload = init;
+    </script>
+</body>
+</html>
