@@ -364,7 +364,7 @@
                                 <span class="lang-en">Annual Living Cost ($)</span>
                                 <span class="lang-zh" style="display:none">年生活成本 ($)</span>
                             </label>
-                            <input type="text" id="livingCost" value="60,000" onblur="formatNumber(this)">
+                            <input type="text" id="livingCost" value="80,000" onblur="formatNumber(this)">
                         </div>
                         <div class="input-group">
                             <label class="bilingual-label">
@@ -429,7 +429,7 @@
                                     <span class="lang-en">Annual ($)</span>
                                     <span class="lang-zh" style="display:none">年金额 ($)</span>
                                 </label>
-                                <input type="number" id="pensionAnnual" value="20000" step="100">
+                                <input type="number" id="pensionAnnual" value="43056" step="100">
                             </div>
                         </div>
                     </div>
@@ -438,8 +438,8 @@
                 <!-- Calculate Button -->
                 <div class="button-group">
                     <button class="btn btn-primary" onclick="calculate()" style="flex:1">
-                        <span class="lang-en">Calculate</span>
-                        <span class="lang-zh" style="display:none">计算</span>
+                        <span class="lang-en">Simulate</span>
+                        <span class="lang-zh" style="display:none">模拟</span>
                     </button>
                 </div>
             </div>
@@ -447,8 +447,8 @@
             <!-- Right: Results -->
             <div class="card">
                 <h2>
-                    <span class="lang-en">Results</span>
-                    <span class="lang-zh" style="display:none">计算结果</span>
+                    <span class="lang-en">Single Simulation Results</span>
+                    <span class="lang-zh" style="display:none">单次模拟结果</span>
                 </h2>
                 <div id="statsContainer" class="result-stats"></div>
                 
@@ -473,7 +473,7 @@
                 <div id="simulationSummary" style="margin-top:48px; display:none;">
                     <h3 style="font-family:'Playfair Display',serif; color:var(--primary); margin-bottom:24px; font-size:1.5em; border-bottom:2px solid var(--accent); padding-bottom:12px;">
                         <span class="lang-en">10000 Simulations Summary</span>
-                        <span class="lang-zh" style="display:none">10000次模拟汇总</span>
+                        <span class="lang-zh" style="display:none">10000次模拟汇总结果</span>
                     </h3>
                     <div id="summaryStatsContainer" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:24px;"></div>
                 </div>
@@ -491,17 +491,13 @@
                     <span class="lang-zh" style="display:none">使用标普500历史收益率（1926-2025）随机模拟</span></li>
                 <li><span class="lang-en">Before retirement: living costs covered by income (not modeled)</span>
                     <span class="lang-zh" style="display:none">退休前：生活成本由收入覆盖（不计入模型）</span></li>
-                <li><span class="lang-en">After retirement: buffer-based withdrawal strategy</span>
-                    <span class="lang-zh" style="display:none">退休后：基于缓冲区的提取策略</span></li>
-                <li><span class="lang-en">Each year: harvest equity gains → maintain bond buffer → use bonds for living</span>
-                    <span class="lang-zh" style="display:none">每年：收割股票收益 → 维持债券缓冲 → 用债券支付生活费</span></li>
-                <div class="section-divider"></div>
+                <li><span class="lang-en">Annual Living Cost and Pension Income use today's dollar, will be adjusted with inflation</span>
+                    <span class="lang-zh" style="display:none">每年生活费和养老金收入使用当前值，随着年份会自动根据通胀调整</span></li>
                 <li><span class="lang-en">Year 2 of retirement: transfer (buffer years × living cost) from equity to bonds</span>
                     <span class="lang-zh" style="display:none">退休第二年：从股票转移（缓冲年数 × 生活成本）至债券</span></li>
-                <li><span class="lang-en">Pension income reduces annual withdrawal needs (inflation-adjusted)</span>
-                    <span class="lang-zh" style="display:none">养老金收入减少年度提款需求（根据通胀调整）</span></li>
-                <li><span class="lang-en">Equity principal tracked separately for gain harvesting</span>
-                    <span class="lang-zh" style="display:none">股票本金单独跟踪用于收益收割</span></li>
+                <li><span class="lang-en">After retirement withdrawal: ① Harvest equity gains first→ ② Pay living cost (pension reduces cost) → ③ Maintain bond buffer (buffer years × living cost), excess back to equity → ④ When equity below principal, use bonds for living cost → ⑤ When bonds depleted, withdraw from equity principal</span>
+                    <span class="lang-zh" style="display:none">退休后提取策略：① 优先收割股票收益 → ② 支付生活费（养老金可抵扣） → ③ 债券保持（缓冲年数 × 生活成本），超额回股票 → ④ 股票低于本金时使用债券支付生活费 → ⑤ 债券耗尽时从股票本金提取</span></li>
+                <div class="section-divider"></div>
                 <li><span class="lang-en">The interpretation rights of this simulator belong to Rednote 羊村学长.</span>
                     <span class="lang-zh" style="display:none">本网页模拟器的最终解释权归小红书羊村学长所有</span></li>
             </ul>
@@ -1014,7 +1010,7 @@ function renderSimulationSummary(simResults, startYear) {
     // Update title with actual simulation count
     const simCount = simResults.length;
     summaryTitle.innerHTML = `
-        <span class="lang-en">${simCount} Simulations Summary</span>
+        <span class="lang-en" style="display:${zh?'none':'inline'}">${simCount} Simulations Summary</span>
         <span class="lang-zh" style="display:${zh?'inline':'none'}">${simCount}次模拟汇总</span>
     `;
     
@@ -1046,7 +1042,7 @@ function renderSimulationSummary(simResults, startYear) {
         : null;
     const mostCommonWealthCount = mostCommonWealthGroup ? wealthGroups[mostCommonWealthGroup] : 0;
     
-    // Find most common starve year - compare "didn't starve" vs actual starve years
+    // Find most common starve year - use success rate to determine logic
     const starveYearCounts = {};
     dieYears.forEach(year => {
         starveYearCounts[year] = (starveYearCounts[year] || 0) + 1;
@@ -1058,18 +1054,22 @@ function renderSimulationSummary(simResults, startYear) {
     let mostCommonStarveYearCount = 0;
     let showDidntStarve = false;
     
-    if (dieYears.length > 0) {
-        // Find most common starve year among those who starved
-        mostCommonStarveYear = Object.keys(starveYearCounts).reduce((a, b) => starveYearCounts[a] > starveYearCounts[b] ? a : b);
-        mostCommonStarveYearCount = starveYearCounts[mostCommonStarveYear];
-        
-        // If "didn't starve" count is higher than any single starve year, show that instead
-        if (didntStarveCount > mostCommonStarveYearCount) {
+    // New logic: use success rate threshold
+    const successRateValue = parseFloat(successRate);
+    
+    if (successRateValue >= 80) {
+        // Success rate >= 80%: show "No Starve"
+        showDidntStarve = true;
+    } else {
+        // Success rate < 80%: show most common starve year
+        if (dieYears.length > 0) {
+            mostCommonStarveYear = Object.keys(starveYearCounts).reduce((a, b) => starveYearCounts[a] > starveYearCounts[b] ? a : b);
+            mostCommonStarveYearCount = starveYearCounts[mostCommonStarveYear];
+            showDidntStarve = false;
+        } else {
+            // Nobody starved (shouldn't happen if successRate < 80, but handle it)
             showDidntStarve = true;
         }
-    } else {
-        // Nobody starved
-        showDidntStarve = true;
     }
     
     // Determine which statistic to show in second card based on target mode
@@ -1078,12 +1078,12 @@ function renderSimulationSummary(simResults, startYear) {
         secondCardHTML = `
             <div class="stat-card" style="padding:24px;">
                 <div class="stat-label" style="font-size:0.95em; margin-bottom:12px;">
-                    <span class="lang-en">Most Common Retire Wealth</span>
+                    <span class="lang-en" style="display:${zh?'none':'block'}">Most Common Retire Wealth</span>
                     <span class="lang-zh" style="display:${zh?'block':'none'}">最常见退休财富</span>
                 </div>
                 <div class="stat-value" style="font-size:2.2em; margin-bottom:8px;">${mostCommonWealthGroup ? '$' + fmt(mostCommonWealthGroup) : 'N/A'}</div>
                 <div style="font-size:0.8em;color:var(--text-light);line-height:1.5;">
-                    <span class="lang-en">Occurred ${mostCommonWealthCount} times</span>
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">Occurred ${mostCommonWealthCount} times</span>
                     <span class="lang-zh" style="display:${zh?'inline':'none'}">出现${mostCommonWealthCount}次</span>
                 </div>
             </div>
@@ -1092,12 +1092,12 @@ function renderSimulationSummary(simResults, startYear) {
         secondCardHTML = `
             <div class="stat-card" style="padding:24px;">
                 <div class="stat-label" style="font-size:0.95em; margin-bottom:12px;">
-                    <span class="lang-en">Most Common Retire Year</span>
+                    <span class="lang-en" style="display:${zh?'none':'block'}">Most Common Retire Year</span>
                     <span class="lang-zh" style="display:${zh?'block':'none'}">最常见退休年份</span>
                 </div>
                 <div class="stat-value" style="font-size:2.2em; margin-bottom:8px;">${mostCommonRetireYear || 'N/A'}</div>
                 <div style="font-size:0.8em;color:var(--text-light);line-height:1.5;">
-                    <span class="lang-en">Occurred ${mostCommonRetireYearCount} times</span>
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">Occurred ${mostCommonRetireYearCount} times</span>
                     <span class="lang-zh" style="display:${zh?'inline':'none'}">出现${mostCommonRetireYearCount}次</span>
                 </div>
             </div>
@@ -1107,12 +1107,12 @@ function renderSimulationSummary(simResults, startYear) {
     summaryContainer.innerHTML = `
         <div class="stat-card" style="background:linear-gradient(135deg,#27ae60,#229954); padding:24px;">
             <div class="stat-label" style="color:#fff;opacity:0.9; font-size:0.95em; margin-bottom:12px;">
-                <span class="lang-en">Success Rate</span>
+                <span class="lang-en" style="display:${zh?'none':'block'}">Success Rate</span>
                 <span class="lang-zh" style="display:${zh?'block':'none'}">成功率</span>
             </div>
             <div class="stat-value" style="color:#fff; font-size:2.2em; margin-bottom:8px;">${successRate}%</div>
             <div style="font-size:0.8em;color:#fff;opacity:0.85;line-height:1.5;">
-                <span class="lang-en">${simResults.length - dieYears.length} out of ${simResults.length} never starved</span>
+                <span class="lang-en" style="display:${zh?'none':'inline'}">${simResults.length - dieYears.length} out of ${simResults.length} never starved</span>
                 <span class="lang-zh" style="display:${zh?'inline':'none'}">${simResults.length}次中${simResults.length - dieYears.length}次未耗尽</span>
             </div>
         </div>
@@ -1121,21 +1121,21 @@ function renderSimulationSummary(simResults, startYear) {
         
         <div class="stat-card ${dieYears.length > simResults.length * 0.5 ? 'danger' : ''}" style="padding:24px;">
             <div class="stat-label" style="font-size:0.95em; margin-bottom:12px;">
-                <span class="lang-en">Most Stave Year</span>
+                <span class="lang-en" style="display:${zh?'none':'block'}">Most Stave Year</span>
                 <span class="lang-zh" style="display:${zh?'block':'none'}">最常见结果</span>
             </div>
             <div class="stat-value" style="font-size:2.2em; margin-bottom:8px;">
                 ${showDidntStarve ? `
-                    <span class="lang-en">No Starve</span>
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">No Starve</span>
                     <span class="lang-zh" style="display:${zh?'inline':'none'}">未耗尽</span>
                 ` : mostCommonStarveYear}
             </div>
             <div style="font-size:0.8em;color:var(--text-light);line-height:1.5;">
                 ${showDidntStarve ? `
-                    <span class="lang-en">Occurred ${didntStarveCount} times</span>
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">Occurred ${didntStarveCount} times</span>
                     <span class="lang-zh" style="display:${zh?'inline':'none'}">出现${didntStarveCount}次</span>
                 ` : `
-                    <span class="lang-en">Starved ${mostCommonStarveYearCount} times<br>(${dieYears.length} total starved)</span>
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">Starved ${mostCommonStarveYearCount} times<br>(${dieYears.length} total starved)</span>
                     <span class="lang-zh" style="display:${zh?'inline':'none'}">耗尽${mostCommonStarveYearCount}次<br>（共${dieYears.length}次耗尽）</span>
                 `}
             </div>
@@ -1156,42 +1156,72 @@ function renderResults(data, retireYear, dieYear, retTarget, totalInvested, lcAt
         const gains = retData.totalWealth - totalInvested;
         sc.innerHTML = `
             <div class="stat-card">
-                <div class="stat-label"><span class="lang-en">Retirement Target</span><span class="lang-zh" style="display:${zh?'block':'none'}">退休目标资产</span></div>
+                <div class="stat-label">
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">Retirement Target</span>
+                    <span class="lang-zh" style="display:${zh?'inline':'none'}">退休目标资产</span>
+                </div>
                 <div class="stat-value">$${fmt(retTarget)}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label"><span class="lang-en">Living Cost at Retire</span><span class="lang-zh" style="display:${zh?'block':'none'}">退休时年生活成本</span></div>
+                <div class="stat-label">
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">Living Cost at Retire</span>
+                    <span class="lang-zh" style="display:${zh?'inline':'none'}">退休时年生活成本</span>
+                </div>
                 <div class="stat-value">$${fmt(lcAtRetire)}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label"><span class="lang-en">Total Invested</span><span class="lang-zh" style="display:${zh?'block':'none'}">累计投入</span></div>
+                <div class="stat-label">
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">Total Invested</span>
+                    <span class="lang-zh" style="display:${zh?'inline':'none'}">累计投入</span>
+                </div>
                 <div class="stat-value">$${fmt(totalInvested)}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label"><span class="lang-en">Gains at Retire</span><span class="lang-zh" style="display:${zh?'block':'none'}">退休时投资收益</span></div>
+                <div class="stat-label">
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">Gains at Retire</span>
+                    <span class="lang-zh" style="display:${zh?'inline':'none'}">退休时投资收益</span>
+                </div>
                 <div class="stat-value">$${fmt(gains)}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label"><span class="lang-en">Retirement Year</span><span class="lang-zh" style="display:${zh?'block':'none'}">退休年份</span></div>
+                <div class="stat-label">
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">Retirement Year</span>
+                    <span class="lang-zh" style="display:${zh?'inline':'none'}">退休年份</span>
+                </div>
                 <div class="stat-value">${retireYear}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label"><span class="lang-en">Years to Retire</span><span class="lang-zh" style="display:${zh?'block':'none'}">距离退休年数</span></div>
+                <div class="stat-label">
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">Years to Retire</span>
+                    <span class="lang-zh" style="display:${zh?'inline':'none'}">距离退休年数</span>
+                </div>
                 <div class="stat-value">${retireYear-startYear}</div>
             </div>
             <div class="stat-card ${dieYear?'danger':''}">
-                <div class="stat-label"><span class="lang-en">Starve Year</span><span class="lang-zh" style="display:${zh?'block':'none'}">资金耗尽年份</span></div>
+                <div class="stat-label">
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">Starve Year</span>
+                    <span class="lang-zh" style="display:${zh?'inline':'none'}">资金耗尽年份</span>
+                </div>
                 <div class="stat-value">${dieYear||'∞'}</div>
             </div>
             <div class="stat-card ${dieYear?'danger':''}">
-                <div class="stat-label"><span class="lang-en">Survive After Retire</span><span class="lang-zh" style="display:${zh?'block':'none'}">退休后存活年数</span></div>
+                <div class="stat-label">
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">Survive After Retire</span>
+                    <span class="lang-zh" style="display:${zh?'inline':'none'}">退休后存活年数</span>
+                </div>
                 <div class="stat-value">${dieYear?(dieYear-retireYear):'∞'}</div>
             </div>`;
     } else {
         sc.innerHTML = `
             <div class="stat-card">
-                <div class="stat-label"><span class="lang-en">Status</span><span class="lang-zh" style="display:${zh?'block':'none'}">状态</span></div>
-                <div class="stat-value" style="font-size:1.15em"><span class="lang-en">Target Not Reached</span><span class="lang-zh" style="display:${zh?'inline':'none'}">未达到退休目标</span></div>
+                <div class="stat-label">
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">Status</span>
+                    <span class="lang-zh" style="display:${zh?'inline':'none'}">状态</span>
+                </div>
+                <div class="stat-value" style="font-size:1.15em">
+                    <span class="lang-en" style="display:${zh?'none':'inline'}">Target Not Reached</span>
+                    <span class="lang-zh" style="display:${zh?'inline':'none'}">未达到退休目标</span>
+                </div>
             </div>`;
     }
 
@@ -1306,9 +1336,9 @@ function renderResults(data, retireYear, dieYear, retTarget, totalInvested, lcAt
 function fmt(n){ return Math.round(n).toLocaleString('en-US'); }
 
 function toggleLanguage(){
-    currentLang = currentLang==='en' ? 'zh' : 'en';
-    document.querySelectorAll('.lang-en').forEach(e=> e.style.display = currentLang==='en'?'':'none');
-    document.querySelectorAll('.lang-zh').forEach(e=> e.style.display = currentLang==='zh'?'':'none');
+    currentLang = currentLang==='zh' ? 'en' : 'zh';
+    document.querySelectorAll('.lang-en').forEach(e=> e.style.display = currentLang==='en'?'inline':'none');
+    document.querySelectorAll('.lang-zh').forEach(e=> e.style.display = currentLang==='zh'?'inline':'none');
 
     if(chartInstance){
         chartInstance.data.datasets[0].label = currentLang==='en'?'Equity':'股票';
