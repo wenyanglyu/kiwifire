@@ -186,6 +186,9 @@
         .stat-value { font-size:1.5em; font-weight:700; color:var(--accent-light); }
         .stat-card.danger .stat-value { color:#f5b7b1; }
 
+        /* ── Summary Grid ── */
+        .summary-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+
         /* ── Assumptions ── */
         .assumptions {
             background:linear-gradient(135deg,#fff9e6,#fffbf0);
@@ -212,23 +215,26 @@
         }
         @media(max-width:768px){
             body{padding:10px}
+            .container{overflow-x:hidden}
             header{padding:26px 14px;margin-bottom:20px;width:100%; max-width: 100%;}
             h1{font-size:1.5em}
             .subtitle{font-size:.92em}
             .lang-switch{top:12px;right:12px;padding:7px 14px;font-size:.84em}
-            .card{padding:14px}
+            .content-wrapper{overflow-x:hidden; min-width:0}
+            .card{padding:14px; overflow-x:hidden; min-width:0}
             .card h2{font-size:1.25em;margin-bottom:12px}
             .input-group{margin-bottom:10px}
             .period-zone{padding:12px;margin-bottom:10px}
             .period-inputs{grid-template-columns:1fr;gap:6px}
             .result-stats{grid-template-columns:1fr 1fr;gap:9px}
-            .stat-card{padding:11px 6px}
+            .stat-card{padding:11px 6px; word-break:break-word}
             .stat-value{font-size:1.25em}
             .stat-label{font-size:.76em}
             .chart-container{height:330px}
             .button-group{flex-direction:column;margin-top:12px}
             .btn{width:100%}
             .assumptions{padding:14px}
+            .summary-grid{grid-template-columns:1fr; gap:14px}
         }
     </style>
 </head>
@@ -475,7 +481,7 @@
                         <span class="lang-en">10000 Simulations Summary</span>
                         <span class="lang-zh" style="display:none">10000次模拟汇总结果</span>
                     </h3>
-                    <div id="summaryStatsContainer" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:24px;"></div>
+                    <div id="summaryStatsContainer" class="summary-grid"></div>
                 </div>
             </div>
         </div>
