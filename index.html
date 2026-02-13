@@ -505,7 +505,7 @@
     </div>
 
 <script>
-let currentLang = 'en';
+let currentLang = 'zh';
 let chartInstance = null;
 let periods = [];
 let targetMode = 'amount';
@@ -529,7 +529,11 @@ const sp500Returns = [
 /* ─── Initialize ─── */
 window.onload = function(){
     addFirstPeriod();
-    
+
+    // Apply default language to all static elements
+    document.querySelectorAll('.lang-en').forEach(e=> e.style.display = 'none');
+    document.querySelectorAll('.lang-zh').forEach(e=> e.style.display = 'inline');
+
     // Add event listener for target year changes
     document.getElementById('targetRetirementYear').addEventListener('input', function(){
         if (targetMode === 'year') {
